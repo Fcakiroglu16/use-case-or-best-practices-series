@@ -8,58 +8,55 @@ helm repo update
 
 kubectl create namespace elastic
 
-
-helm upgrade --install elastic elastic/elasticsearch -n elastic \
-  --set replicas=1 \
-  --set persistence.enabled=false \
-  --set antiAffinity="soft"
+helm upgrade --install elastic elastic/elasticsearch -n elastic
+--set replicas=1
+--set persistence.enabled=false
+--set antiAffinity="soft"
 
 helm upgrade --install kibana elastic/kibana  -n elastic
 
 helm upgrade --install apm-server elastic/apm-server -n elastic
 
-
-
 update to apm-server-apm-server-config for https connection
 
-
-output.elasticsearch: 
-  hosts: ["https://elasticsearch-master:9200"]
-  username: "${ELASTICSEARCH_USERNAME}"
-  password: "${ELASTICSEARCH_PASSWORD}"
-  ## If SSL is enabled protocol:
-  protocol: https
-  ssl.certificate_authorities: /usr/share/apm-server/config/certs/ca.crt
-
+output.elasticsearch:
+hosts: ["https://elasticsearch-master:9200"]
+username: "${ELASTICSEARCH_USERNAME}"
+password: "${ELASTICSEARCH_PASSWORD}"
+protocol: https
+ssl.certificate_authorities: /usr/share/apm-server/config/certs/ca.crt
 
 update apm-server-apm-server deployment for volumeMounts and volumes
 
-
-
 volumes
-  volumes:
-    ....
-    - name: elasticsearch-certs 
-    - secret: secretName: elasticsearch-master-certs 
-    - defaultMode: 420 
-  volumeMounts: 
-    ....
-    - name: elasticsearch-certs
-    readOnly: true
-    mountPath: /usr/share/apm-server/config/certs
 
+volumes:
+....
 
-    check apm-server address for ready
+- name: elasticsearch-certs
+- secret: secretName: elasticsearch-master-certs
+- volumeMounts:
+  ....
+- name: elasticsearch-certs
+  readOnly: true
+  mountPath: /usr/share/apm-server/config/certs
 
-    {
-  "build_date": "2022-11-09T11:21:18-08:00",
-  "build_sha": "7cf6f555935def992ecfd9a4693771447cb51431",
-  "publish_ready": true,
-  "version": "8.5.1"
-  }
+check apm-server address for ready
 
+{
+"build_date": "2022-11-09T11:21:18-08:00",
+"build_sha": "7cf6f555935def992ecfd9a4693771447cb51431",
+"publish_ready": true,
+"version": "8.5.1"
+}
 
+install Prometheus
 
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+
+helm upgrade --install prom prometheus-community/prometheus
+-n monitoring -f prometheus-values-min.yaml
 
 ---------- Metrics ----------
 

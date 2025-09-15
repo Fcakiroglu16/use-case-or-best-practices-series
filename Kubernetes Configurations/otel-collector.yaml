@@ -43,6 +43,10 @@ spec:
       protocol: TCP
       port: 4318
       targetPort: 4318
+    - name: prometheus
+      protocol: TCP
+      port: 8889
+      targetPort: 8889  
   type: ClusterIP
 ---
 apiVersion: v1
@@ -66,6 +70,8 @@ data:
         endpoint: "http://apm-server-apm-server:8200"
         tls:
           insecure: true
+      prometheus:
+        endpoint: "0.0.0.0:8889"   # /metrics
     service:
       telemetry:
         logs:
@@ -78,7 +84,7 @@ data:
         metrics:
           receivers: [ otlp ]
           processors: [ batch ]
-          exporters: [ otlp ]
+          exporters: [ prometheus ]
         logs:
           receivers: [ otlp ]
           processors: [ batch ]

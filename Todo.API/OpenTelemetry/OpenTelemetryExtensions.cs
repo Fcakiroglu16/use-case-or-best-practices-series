@@ -10,19 +10,20 @@ namespace Todo.API.OpenTelemetry
         public static void AddOpenTelemetryExt(this IServiceCollection services, IConfiguration configuration)
 
         {
-            services.Configure<OpenTelemetryConstants>(configuration.GetSection("OpenTelemetry"));
-            var openTelemetryConstants = configuration.GetSection("OpenTelemetry").Get<OpenTelemetryConstants>()!;
+            services.Configure<OpenTelemetryOption>(configuration.GetSection(nameof(OpenTelemetryOption)));
+            var openTelemetryOption =
+                configuration.GetSection(nameof(OpenTelemetryOption)).Get<OpenTelemetryOption>()!;
 
             ActivitySourceProvider.Source =
-                new System.Diagnostics.ActivitySource(openTelemetryConstants.ActivitySourceName);
+                new System.Diagnostics.ActivitySource(openTelemetryOption.ActivitySourceName);
 
             services.AddOpenTelemetry().WithTracing(options =>
             {
-                options.AddSource(openTelemetryConstants.ActivitySourceName)
+                options.AddSource(openTelemetryOption.ActivitySourceName)
                     .ConfigureResource(resource =>
                     {
-                        resource.AddService(openTelemetryConstants.ServiceName,
-                            serviceVersion: openTelemetryConstants.ServiceVersion);
+                        resource.AddService(openTelemetryOption.ServiceName,
+                            serviceVersion: openTelemetryOption.ServiceVersion);
                     });
                 options.AddAspNetCoreInstrumentation(aspnetcoreOptions =>
                 {
@@ -33,20 +34,32 @@ namespace Todo.API.OpenTelemetry
                 options.AddHttpClientInstrumentation();
 
                 options.AddConsoleExporter();
-                options.AddOtlpExporter(x => x.Endpoint = new Uri("http://localhost:59537"));
+                options.AddOtlpExporter(x => x.Endpoint = new Uri(openTelemetryOption.OtelCollectorAddress));
             }).WithMetrics(configure =>
             {
+                configure.ConfigureResource(resource =>
+                {
+                    resource.AddService(openTelemetryOption.ServiceName,
+                        serviceVersion: openTelemetryOption.ServiceVersion);
+                });
+
+
                 configure.AddAspNetCoreInstrumentation();
                 configure.AddHttpClientInstrumentation();
 
                 configure.AddRuntimeInstrumentation();
                 configure.AddProcessInstrumentation();
 
-                configure.AddOtlpExporter();
+                configure.AddOtlpExporter(x => x.Endpoint = new Uri(openTelemetryOption.OtelCollectorAddress));
             }).WithLogging(configure =>
             {
+                configure.ConfigureResource(resource =>
+                {
+                    resource.AddService(openTelemetryOption.ServiceName,
+                        serviceVersion: openTelemetryOption.ServiceVersion);
+                });
                 configure.AddConsoleExporter();
-                configure.AddOtlpExporter();
+                configure.AddOtlpExporter(x => x.Endpoint = new Uri(openTelemetryOption.OtelCollectorAddress));
             });
         }
     }
