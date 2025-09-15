@@ -18,7 +18,33 @@ helm upgrade --install elastic elastic/elasticsearch -n elastic \
 
 helm upgrade --install kibana elastic/kibana  -n elastic
 
-helm upgrade --install apm-server elastic/apm-server
+helm upgrade --install apm-server elastic/apm-server -n elastic
+
+
+update to apm-server-apm-server-config for https connection
+
+output.elasticsearch:
+      hosts: ["https://elasticsearch-master:9200"]
+      username: "${ELASTICSEARCH_USERNAME}"
+      password: "${ELASTICSEARCH_PASSWORD}"
+      ## If SSL is enabled
+      protocol: https
+      ssl.certificate_authorities: /usr/share/apm-server/config/certs/ca.crt
+
+update to  apm-server-apm-server deployment for volumeMounts and volumes
+       volumes:
+        ....
+        - name: elasticsearch-certs
+          secret:
+            secretName: elasticsearch-master-certs
+            defaultMode: 420
+       volumeMounts:
+         ....
+            - name: elasticsearch-certs
+              readOnly: true
+              mountPath: /usr/share/apm-server/config/certs
+
+
 
 
 

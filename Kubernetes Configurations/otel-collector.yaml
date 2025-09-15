@@ -1,0 +1,85 @@
+﻿apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otel-collector
+  namespace: elastic
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: otel-collector
+  template:
+    metadata:
+      labels:
+        app: otel-collector
+    spec:
+      containers:
+        - name: otel-collector
+          image: otel/opentelemetry-collector-contrib:0.128.0
+          args: [ "--config=/etc/otel-collector-config.yaml" ]
+          volumeMounts:
+            - name: config
+              mountPath: /etc/otel-collector-config.yaml
+              subPath: otel-collector-config.yaml
+      volumes:
+        - name: config
+          configMap:
+            name: otel-collector-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: otel-collector
+  namespace: elastic
+spec:
+  selector:
+    app: otel-collector
+  ports:
+    - name: grpc
+      protocol: TCP
+      port: 4317         # Servisin expose ettiği port
+      targetPort: 4317   # Container içindeki port
+    - name: http
+      protocol: TCP
+      port: 4318
+      targetPort: 4318
+  type: ClusterIP
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-collector-config
+  namespace: elastic
+data:
+  otel-collector-config.yaml: |
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: "0.0.0.0:4317"
+          http:
+            endpoint: "0.0.0.0:4318"
+    processors:
+      batch:
+    exporters:
+      otlp:
+        endpoint: "http://apm-server-apm-server:8200"
+        tls:
+          insecure: true
+    service:
+      telemetry:
+        logs:
+          level: "debug"
+      pipelines:
+        traces:
+          receivers: [ otlp ]
+          processors: [ batch ]
+          exporters: [ otlp ]
+        metrics:
+          receivers: [ otlp ]
+          processors: [ batch ]
+          exporters: [ otlp ]
+        logs:
+          receivers: [ otlp ]
+          processors: [ batch ]
+          exporters: [ otlp ]

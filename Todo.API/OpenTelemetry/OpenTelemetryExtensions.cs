@@ -33,7 +33,7 @@ namespace Todo.API.OpenTelemetry
                 options.AddHttpClientInstrumentation();
 
                 options.AddConsoleExporter();
-                options.AddOtlpExporter();
+                options.AddOtlpExporter(x => x.Endpoint = new Uri("http://localhost:59537"));
             }).WithMetrics(configure =>
             {
                 configure.AddAspNetCoreInstrumentation();
