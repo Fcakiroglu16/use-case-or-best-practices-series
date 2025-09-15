@@ -20,8 +20,11 @@ public static class TodoEndpoints
         });
 
         // POST create a new todo
-        todos.MapPost("/", async (TodoItem todo, ITodoRepository repo) =>
+        todos.MapPost("/", async (TodoItem todo, ITodoRepository repo, ILoggerFactory loggerFactory) =>
         {
+            var logger = loggerFactory.CreateLogger("TodoEndpoints");
+            logger.LogInformation("Creating a new todo item");
+
             var created = await repo.CreateAsync(todo);
             return Results.Created($"/api/todos/{created.Id}", created);
         });
