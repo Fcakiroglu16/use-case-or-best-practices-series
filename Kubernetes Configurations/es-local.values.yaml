@@ -1,0 +1,18 @@
+replicas: 1
+esConfig:
+  elasticsearch.yml: |
+    xpack.security.enabled: true
+    discovery.type: single-node
+
+volumeClaimTemplate:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 15Gi
+
+resources:
+  requests:
+    cpu: "500m"
+    memory: "2Gi"
+  limits:
+    memory: "3Gi"
