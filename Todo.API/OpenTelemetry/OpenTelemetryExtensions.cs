@@ -17,6 +17,7 @@ namespace Todo.API.OpenTelemetry
             ActivitySourceProvider.Source =
                 new System.Diagnostics.ActivitySource(openTelemetryOption.ActivitySourceName);
 
+
             services.AddOpenTelemetry().WithTracing(options =>
             {
                 options.AddSource(openTelemetryOption.ActivitySourceName)

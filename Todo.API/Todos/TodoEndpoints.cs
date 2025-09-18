@@ -25,6 +25,24 @@ public static class TodoEndpoints
             var logger = loggerFactory.CreateLogger("TodoEndpoints");
             logger.LogInformation("Creating a new todo item");
 
+
+            Guid userId = Guid.NewGuid();
+
+
+            logger.LogInformation($"A new todo item was created for user ${userId}");
+
+            logger.LogInformation("A new todo item was created for user {UserId}", userId);
+
+            logger.LogInformation("A new todo created todo ={@todo}", todo);
+
+            logger.LogInformation(
+                "New todo created with Id {TodoId} for user {UserId}. {@Todo}",
+                todo.Id,
+                userId,
+                todo
+            );
+
+
             var created = await repo.CreateAsync(todo);
             return Results.Created($"/api/todos/{created.Id}", created);
         });
