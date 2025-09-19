@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 namespace Todo.API.Todos;
 
 public static class TodoEndpoints
@@ -33,15 +35,22 @@ public static class TodoEndpoints
 
             logger.LogInformation("A new todo item was created for user {UserId}", userId);
 
-            logger.LogInformation("A new todo created todo ={@todo}", todo);
+            logger.LogInformation("A new todo created todo ={todo}", JsonSerializer.Serialize(todo));
 
             logger.LogInformation(
-                "New todo created with Id {TodoId} for user {UserId}. {@Todo}",
+                "New todo created with Id {TodoId} for user {UserId}. {todo}",
                 todo.Id,
                 userId,
-                todo
+                JsonSerializer.Serialize(todo)
             );
 
+
+            var identityNumber = "12345678901";
+
+            logger.LogInformation("A new todo item was created for Identity number: {identityNumber}", identityNumber);
+
+            logger.LogInformation(
+                $"A new todo item was created for Identity number without log attributes: {identityNumber}");
 
             var created = await repo.CreateAsync(todo);
             return Results.Created($"/api/todos/{created.Id}", created);

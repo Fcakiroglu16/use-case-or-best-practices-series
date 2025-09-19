@@ -1,7 +1,9 @@
 ﻿using OpenTelemetry.Logs;
 using Scalar.AspNetCore;
+using System.Text.Json;
 using Todo.API.Middleware;
 using Todo.API.OpenTelemetry;
+using Todo.API.OpenTelemetry.Processing;
 using Todo.API.Todos;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,7 +20,8 @@ builder.Logging.ClearProviders();
 builder.Logging.AddOpenTelemetry(o =>
 {
     o.IncludeScopes = true;
-    o.IncludeFormattedMessage = true;
+    o.IncludeFormattedMessage = false;
+
     /*
 
     using (_logger.BeginScope(new Dictionary<string, object>
@@ -38,6 +41,16 @@ builder.Logging.AddOpenTelemetry(o =>
          ]
        }
      */
+
+
+    o.AddProcessor(new UnifiedRedactionProcessor(
+        json: new JsonSerializerOptions
+        {
+            WriteIndented = false
+            // Converters = { new JsonStringEnumConverter() } // optional
+        },
+        alsoConvertBodyAndRedact: false // set true if you also want body scrubbed
+    ));
 
 
     o.AddOtlpExporter(); // endpoint varsayılan: http://localhost:4317
