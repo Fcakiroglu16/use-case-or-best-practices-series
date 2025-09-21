@@ -1,4 +1,5 @@
-using System.Text.Json;
+using MassTransit;
+using Shared.Bus;
 
 namespace Todo.API.Todos;
 
@@ -22,40 +23,41 @@ public static class TodoEndpoints
         });
 
         // POST create a new todo
-        todos.MapPost("/", async (TodoItem todo, ITodoRepository repo, ILoggerFactory loggerFactory) =>
-        {
-            var logger = loggerFactory.CreateLogger("TodoEndpoints");
-            logger.LogInformation("Creating a new todo item");
+        todos.MapPost("/",
+            async (TodoItem todo, ITodoRepository repo, ILoggerFactory loggerFactory,
+                IPublishEndpoint publishEndpoint) =>
+            {
+                var logger = loggerFactory.CreateLogger("TodoEndpoints");
+                logger.LogInformation("Creating a new todo item");
+
+                await publishEndpoint.Publish(new ResizeImageCommand("image url", 1000, 400));
 
 
-            Guid userId = Guid.NewGuid();
+                var created = await repo.CreateAsync(todo);
+                return Results.Created($"/api/todos/{created.Id}", created);
+            });
+        todos.MapPost("/send-batch-message",
+            async ( ILoggerFactory loggerFactory,
+                IPublishEndpoint publishEndpoint) =>
+            {
+                var logger = loggerFactory.CreateLogger("TodoEndpoints");
 
 
-            logger.LogInformation($"A new todo item was created for user ${userId}");
+                Enumerable.Range(0, 1000).ToList().ForEach(async x =>
+                {
+                    await publishEndpoint.Publish(new ResizeImageCommand("image url", 1000, 400));
 
-            logger.LogInformation("A new todo item was created for user {UserId}", userId);
-
-            logger.LogInformation("A new todo created todo ={todo}", JsonSerializer.Serialize(todo));
-
-            logger.LogInformation(
-                "New todo created with Id {TodoId} for user {UserId}. {todo}",
-                todo.Id,
-                userId,
-                JsonSerializer.Serialize(todo)
-            );
+                });
+                //logging
+                logger.LogInformation("Sending batch message");
+                return Results.Ok();
 
 
-            var identityNumber = "12345678901";
 
-            logger.LogInformation("A new todo item was created for Identity number: {identityNumber}", identityNumber);
 
-            logger.LogInformation(
-                $"A new todo item was created for Identity number without log attributes: {identityNumber}");
 
-            var created = await repo.CreateAsync(todo);
-            return Results.Created($"/api/todos/{created.Id}", created);
-        });
 
+            });
         // PUT update a todo
         todos.MapPut("/{id:guid}", async (Guid id, TodoItem todo, ITodoRepository repo) =>
         {

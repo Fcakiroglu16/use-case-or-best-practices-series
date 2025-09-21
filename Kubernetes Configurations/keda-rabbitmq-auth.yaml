@@ -1,0 +1,9 @@
+﻿apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: keda-rabbitmq-auth
+spec:
+  secretTargetRef:
+    - parameter: host # KEDA'nın RabbitMQ scaler'ının beklediği parametre adı
+      name: rabbitmq-connection-secret # Kullandığımız Secret'ın adı
+      key: ConnectionStrings__RabbitMq # Secret içindeki bağlantı dizesinin anahtarı

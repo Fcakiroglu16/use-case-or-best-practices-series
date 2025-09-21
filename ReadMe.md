@@ -1,22 +1,34 @@
-﻿# Logging Best Practices
+﻿argo cd install
 
-This guide outlines recommended best practices for implementing consistent and secure logging in applications.
+kubectl create namespace argocd
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
-## 1. Format logs consistently with structured templates
-- Use structured logging (e.g., JSON) instead of plain text.
-- Define a standard schema for log fields (timestamp, log level, service, userId, correlationId, etc.).
-- Ensure log messages follow consistent templates to improve readability and parsing.
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm repo update
 
-## 2. Enrich logs with contextual scopes
-- Include contextual information such as userId, requestId, sessionId, and environment.
-- Use logging scopes to automatically add contextual properties across related log entries.
-- This helps trace a request across distributed systems and microservices.
+helm install my-rabbitmq bitnami/rabbitmq
 
-## 3. Protect sensitive data by masking before export
-- Never log sensitive data directly (passwords, tokens, credit card numbers, personal identifiers).
-- Apply masking or hashing for fields that may contain sensitive values before logs are exported.
-- Ensure compliance with data protection regulations (e.g., GDPR, HIPAA, PCI-DSS).
+my-rabbitmq service port-forward  15672
+default username : user
+default password :you can show password in myrabbitmq secret
 
----
+run command below for todo api and image processoer project
+docker compose build
 
-Following these practices will help ensure that logs remain useful for debugging and monitoring while protecting sensitive data and maintaining compliance.
+kubectl apply -f  todo.api.deplyment.yaml
+kubectl apply -f image.processor.workerservice.deployment.yaml
+
+
+Keda setup
+
+
+helm repo add kedacore https://kedacore.github.io/charts
+
+helm repo update
+
+helm install keda kedacore/keda --namespace keda --create-namespace
+
+
+kubectl apply -f  rabbitmq-secret.yaml
+kubectl apply -f  keda-rabbitmq-auth.yaml
+

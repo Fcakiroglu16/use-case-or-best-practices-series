@@ -1,0 +1,55 @@
+# API Version for the Deployment resource
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # A unique name for your Deployment
+  name: image-process-workerservice-deployment
+  labels:
+    # Labels to help organize and select resources
+    app: image-process-workerservice
+spec:
+  # The desired number of running application instances (pods)
+  replicas: 1
+  # The selector determines which pods this Deployment manages
+  selector:
+    matchLabels:
+      app: image-process-workerservice
+  # The template defines the blueprint for the pods
+  template:
+    metadata:
+      # Pods will be created with these labels, matching the selector above
+      labels:
+        app: image-process-workerservice
+    spec:
+      containers:
+        - name: image-process-workerservice-container
+          # The full path to your container image in a registry
+          image: image-process.workerservice:latest
+          imagePullPolicy: Never
+          # Resource requests and limits are crucial for cluster stability
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "250m" # 250 millicores (0.25 of a CPU core)
+            limits:
+              memory: "256Mi"
+              cpu: "500m" # 500 millicores (0.5 of a CPU core)
+          env:
+            - name: DOTNET_ENVIRONMENT
+              value: "Development"
+---
+
+# API Version for the Service resource
+apiVersion: v1
+kind: Service
+metadata:
+  # A unique name for your Service
+  name: image-process-workerservice-service
+spec:
+  # The type of service determines how it's exposed.
+  # 'ClusterIP' exposes the service only within the cluster.
+  # Use 'NodePort' or 'LoadBalancer' for external access.
+  type: ClusterIP
+  # This selector routes traffic to pods with matching labels
+  selector:
+    app: image-process-workerservice

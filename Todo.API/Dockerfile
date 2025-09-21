@@ -12,6 +12,7 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["Todo.API/Todo.API.csproj", "Todo.API/"]
+COPY ["Shared.Bus/Shared.Bus.csproj", "Shared.Bus/"]
 RUN dotnet restore "./Todo.API/Todo.API.csproj"
 COPY . .
 WORKDIR "/src/Todo.API"
