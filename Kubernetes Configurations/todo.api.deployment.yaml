@@ -1,0 +1,70 @@
+# API Version for the Deployment resource
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # A unique name for your Deployment
+  name: todo-api-deployment
+  labels:
+    # Labels to help organize and select resources
+    app: todo-api
+spec:
+  # The desired number of running application instances (pods)
+  replicas: 1
+  # The selector determines which pods this Deployment manages
+  selector:
+    matchLabels:
+      app: todo-api
+  # The template defines the blueprint for the pods
+  template:
+    metadata:
+      # Pods will be created with these labels, matching the selector above
+      labels:
+        app: todo-api
+    spec:
+      containers:
+        - name: todo-api-container
+          # The full path to your container image in a registry
+          image: todo.api:latest
+          imagePullPolicy: Never
+          # Resource requests and limits are crucial for cluster stability
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "250m" # 250 millicores (0.25 of a CPU core)
+            limits:
+              memory: "256Mi"
+              cpu: "500m" # 500 millicores (0.5 of a CPU core)
+          ports:
+            # The port that the container exposes
+            - containerPort: 8080
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: "Development"
+            # This configures the app to listen on the specified port inside the container
+            - name: ASPNETCORE_URLS
+              value: "http://+:8080"
+
+---
+
+# API Version for the Service resource
+apiVersion: v1
+kind: Service
+metadata:
+  # A unique name for your Service
+  name: todo-api-service
+spec:
+  # The type of service determines how it's exposed.
+  # 'ClusterIP' exposes the service only within the cluster.
+  # Use 'NodePort' or 'LoadBalancer' for external access.
+  type: ClusterIP
+  # This selector routes traffic to pods with matching labels
+  selector:
+    app: todo-api
+  ports:
+    # The ports configuration for the service
+    - name: http
+      protocol: TCP
+      # The port that the service will be available on within the cluster
+      port: 80
+      # The port on the pod that traffic should be forwarded to
+      targetPort: 8080
