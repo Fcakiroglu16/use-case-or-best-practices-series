@@ -1,4 +1,9 @@
-﻿# **Observability Architecture**
+
+
+![Log_Trace_Metric Use Case](https://github.com/user-attachments/assets/325c6f6c-768a-430c-a4f2-b27527698fcf)
+
+ 
+ # **Observability Architecture**
 
 # Elastic Stack + APM + OtelCollector + Prometheus + Grafana on Docker Desktop Kubernetes (Single Node)
 
