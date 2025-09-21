@@ -1,37 +1,30 @@
 ﻿apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:
-  # ScaledObject için benzersiz bir isim
   name: rabbitmq-worker-scaler
   namespace: default
 spec:
-  # Ölçeklenecek olan hedef Deployment'ın adı
+
   scaleTargetRef:
     name: image-process-workerservice-deployment
   
-  # KEDA'nın kuyruğu ne sıklıkla kontrol edeceği (saniye cinsinden)
   pollingInterval: 15
   
-  # Son pod kapatıldıktan sonra ölçeklemeyi tekrar aktif etmeden önce beklenecek süre
-  cooldownPeriod: 100 # 5 dakika
-  
-  # Minimum pod sayısı. Mesaj yokken pod sayısını 0'a düşürerek kaynak tasarrufu sağlar!
+
+  cooldownPeriod: 100 
+  r!
   minReplicaCount: 1
   
-  # Ulaşılabilecek maksimum pod sayısı
   maxReplicaCount: 10
       
-  # Ölçeklemeyi tetikleyecek olay kaynağı
   triggers:
     - type: rabbitmq
       metadata:
-        # DİKKAT: İzlemek istediğiniz kuyruğun adını buraya yazın
+  
         queueName: "ResizeImageCommand"
         
-        # Hedef kuyruk uzunluğu. Ortalama olarak her 5 mesaj için bir pod oluşturulur.
-        # Örneğin 15 mesaj varsa, KEDA 3 pod'a (15/5) ölçeklemeye çalışır.
+
         queueLength: "5"
         includeUnacked: "true"
-      # 2. Adımda oluşturduğumuz TriggerAuthentication kaynağına referans
       authenticationRef:
         name: keda-rabbitmq-auth
