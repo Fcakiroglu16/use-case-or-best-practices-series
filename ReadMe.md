@@ -1,6 +1,6 @@
-﻿# Argo CD, RabbitMQ, and KEDA Project Setup
+﻿# RabbitMQ, and KEDA Project Setup
 
-This guide provides a step-by-step process for setting up a Kubernetes environment with **Argo CD** for GitOps, **RabbitMQ** for messaging, and **KEDA** for event-driven autoscaling. This setup is ideal for microservice architectures, where services need to scale dynamically based on workload.
+This guide provides a step-by-step process for setting up a Kubernetes environment with  **RabbitMQ** for messaging, and **KEDA** for event-driven autoscaling. This setup is ideal for microservice architectures, where services need to scale dynamically based on workload.
 
 ## Prerequisites
 
@@ -15,23 +15,8 @@ Before you start, make sure you have the following tools installed:
 -   **`docker`** and **`docker compose`** to build your application images
 
 
-----------
 
-## 1. Argo CD Installation
-
-First, we'll install Argo CD, a powerful tool for declarative GitOps. We will create a dedicated namespace for it and apply the necessary manifest files.
-
-Bash
-
-```
-kubectl create namespace argocd
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
-
-```
-
-----------
-
-## 2. RabbitMQ Installation
+## 1. RabbitMQ Installation
 
 Next, we'll set up **RabbitMQ** as our message broker using a Helm chart. This is a quick and reliable way to deploy complex applications like RabbitMQ on Kubernetes.
 
@@ -67,7 +52,7 @@ You can then open your web browser and go to `http://localhost:15672`.
 
 ----------
 
-## 3. Building Application Images
+## 2. Building Application Images
 
 Before deploying our applications, we need to build their Docker images. This process is managed by `docker-compose`.
 
@@ -80,7 +65,7 @@ docker compose build
 
 ----------
 
-## 4. Deploying Services
+## 3. Deploying Services
 
 With our images ready, we can deploy our **To-Do API** and the **Image Processor Worker Service** to the cluster using `kubectl apply`.
 
@@ -94,7 +79,7 @@ kubectl apply -f image.processor.workerservice.deployment.yaml
 
 ----------
 
-## 5. KEDA Setup for Autoscaling
+## 4. KEDA Setup for Autoscaling
 
 **KEDA (Kubernetes Event-driven Autoscaling)** allows our worker service to scale automatically based on the number of messages in the RabbitMQ queue. This prevents resource waste when there is no work and ensures your application can handle high loads when needed.
 
