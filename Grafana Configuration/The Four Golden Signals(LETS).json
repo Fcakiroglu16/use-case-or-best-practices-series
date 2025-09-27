@@ -221,7 +221,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum(rate(process_cpu_time_seconds_total[5m])) by (instance) * 100 ",
+          "expr": "sum(rate(process_cpu_time_seconds_total[5m])) by (instance) * 100 *100",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -241,6 +241,8 @@
             "mode": "thresholds"
           },
           "mappings": [],
+          "max": 1,
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -489,6 +491,8 @@
             "mode": "thresholds"
           },
           "mappings": [],
+          "max": 100,
+          "min": 1,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -649,5 +653,5 @@
   "timezone": "browser",
   "title": "The Four Golden Signals(LETS)",
   "uid": "f189439a-23eb-4044-99e9-d6534e9b9810",
-  "version": 23
+  "version": 30
 }
