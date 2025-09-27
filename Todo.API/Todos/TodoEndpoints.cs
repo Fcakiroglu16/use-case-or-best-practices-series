@@ -22,6 +22,17 @@ public static class TodoEndpoints
         // POST create a new todo
         todos.MapPost("/", async (TodoItem todo, ITodoRepository repo, ILoggerFactory loggerFactory) =>
         {
+            var random = new Random().Next(100, 3000);
+
+            if (random > 2500)
+            {
+                throw new Exception("Database Error");
+            }
+
+
+            await Task.Delay(random);
+
+
             var logger = loggerFactory.CreateLogger("TodoEndpoints");
             logger.LogInformation("Creating a new todo item");
 

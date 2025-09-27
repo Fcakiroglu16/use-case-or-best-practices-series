@@ -46,10 +46,8 @@ namespace Todo.API.OpenTelemetry
 
 
                 configure.AddAspNetCoreInstrumentation();
-                configure.AddHttpClientInstrumentation();
-
-                configure.AddRuntimeInstrumentation();
                 configure.AddProcessInstrumentation();
+                configure.AddRuntimeInstrumentation();
 
                 configure.AddOtlpExporter(x => x.Endpoint = new Uri(openTelemetryOption.OtelCollectorAddress));
             }).WithLogging(configure =>
