@@ -10,7 +10,7 @@
 
             using (logger.BeginScope(new Dictionary<string, object>
             {
-                ["UserId"] = userId!
+                ["UserId"] = userId!,
             }))
             {
                 await next(context);
