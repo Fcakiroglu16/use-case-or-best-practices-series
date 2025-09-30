@@ -11,6 +11,8 @@ public class InMemoryTodoRepository : ITodoRepository
 
     public Task<TodoItem?> GetByIdAsync(Guid id)
     {
+        string name = "pay";
+        Console.WriteLine(name);
         return Task.FromResult(_todos.FirstOrDefault(t => t.Id == id));
     }
 

@@ -14,9 +14,9 @@
 # Edit the variables in this section according to your project and server information.
 # ------------------------------------------------------------------------------------
 
-$projectKey   = "UseCases"
+$projectKey   = "TodoKey"
 $sonarHostUrl = "http://localhost:9001"
-$sonarToken   = "sqp_f8df97d2041ccf9dbb5a866d38b5fe4a7bc50a3e" # Paste your actual token code here
+$sonarToken   = "sqp_60bf2870883421ed209ec07e0c44778173365915" # Paste your actual token code here
 $solutionFile = "UseCase-Series.sln" # Enter the name of your project's .sln file here
 
 # ------------------------------------------------------------------------------------
