@@ -24,6 +24,7 @@ public class RedisStreamPublisherAndConsumerWithAck
     /// </summary>
     public async Task<bool> PublishMessageWithAck(string message)
     {
+        Console.WriteLine("------------------------------------------------------------");
         try
         {
             // Redis Stream'e mesaj ekle
@@ -41,10 +42,11 @@ public class RedisStreamPublisherAndConsumerWithAck
             if (messageId.IsNull)
             {
                 Console.WriteLine("❌ Message was not added to stream");
+                Console.WriteLine("------------------------------------------------------------");
                 return false;
             }
 
-            Console.WriteLine($"Message published to stream '{_streamName}'");
+            Console.WriteLine($"✅ Message published to stream '{_streamName}'");
             Console.WriteLine($"   Message ID: {messageId}");
             Console.WriteLine($"   Content: {message}");
 
@@ -52,15 +54,17 @@ public class RedisStreamPublisherAndConsumerWithAck
             var verificationResult = await VerifyMessagePublished(messageId);
 
             if (verificationResult)
-                Console.WriteLine($"Message verified in stream: {messageId}");
+                Console.WriteLine($"✅ Message verified in stream: {messageId}");
             else
-                Console.WriteLine($"Message verification failed: {messageId}");
+                Console.WriteLine($"⚠️ Message verification failed: {messageId}");
 
+            Console.WriteLine("------------------------------------------------------------");
             return verificationResult;
         }
         catch (Exception ex)
         {
             Console.WriteLine($"❌ Failed to publish message: {ex.Message}");
+            Console.WriteLine("------------------------------------------------------------");
             throw;
         }
     }
@@ -176,14 +180,15 @@ public class RedisStreamPublisherAndConsumerWithAck
     {
         foreach (var entry in messages)
         {
+            Console.WriteLine("------------------------------------------------------------");
             var messageId = entry.Id;
             var values = entry.Values;
             var messageContent = values.FirstOrDefault(v => v.Name == "message").Value.ToString();
 
             try
             {
-                Console.WriteLine("📨 Message received:");
-                Console.WriteLine($"   ID: {messageId}");
+                Console.WriteLine($"📨 Message received from stream '{_streamName}'");
+                Console.WriteLine($"   Message ID: {messageId}");
                 Console.WriteLine($"   Content: {messageContent}");
 
                 // Mesajı işle
@@ -196,12 +201,16 @@ public class RedisStreamPublisherAndConsumerWithAck
                     messageId
                 );
 
-                if (ackedCount > 0) Console.WriteLine($"✅ Message acknowledged: {messageContent}");
+                if (ackedCount > 0)
+                    Console.WriteLine($"✅ Message acknowledged: {messageContent}");
+
+                Console.WriteLine("------------------------------------------------------------");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"❌ Error processing message: {ex.Message}");
                 Console.WriteLine($"⏸️ Message NOT acknowledged (ID: {messageId}), will be reprocessed");
+                Console.WriteLine("------------------------------------------------------------");
 
                 // ACK yapılmadığı için mesaj pending listesinde kalır
                 // Bir sonraki okumada tekrar işlenecek

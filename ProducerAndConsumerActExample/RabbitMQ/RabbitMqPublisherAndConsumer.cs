@@ -75,9 +75,9 @@ public class RabbitMqPublisherAndConsumerWithAck
             );
 
 
-            Console.WriteLine($"Message published to queue '{_queueName}'");
+            Console.WriteLine($"✅ Message published to queue '{_queueName}'");
             Console.WriteLine($"   Content: {message}");
-            Console.WriteLine("Message confirmed by broker");
+            Console.WriteLine("✅ Message confirmed by broker");
             Console.WriteLine("------------------------------------------------------------");
         }
         catch (Exception ex)
@@ -100,27 +100,30 @@ public class RabbitMqPublisherAndConsumerWithAck
 
         consumer.ReceivedAsync += async (_, ea) =>
         {
+            Console.WriteLine("------------------------------------------------------------");
             var body = ea.Body.ToArray();
             var message = Encoding.UTF8.GetString(body);
 
             try
             {
-                Console.WriteLine($"Message received: {message}");
-
+                Console.WriteLine($"📨 Message received from queue '{_queueName}'");
+                Console.WriteLine($"   Delivery Tag: {ea.DeliveryTag}");
+                Console.WriteLine($"   Content: {message}");
 
                 messageHandler(message);
 
-
                 await _channel.BasicAckAsync(ea.DeliveryTag, false);
-                Console.WriteLine($"Message acknowledged: {message}");
+                Console.WriteLine($"✅ Message acknowledged: {message}");
+                Console.WriteLine("------------------------------------------------------------");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error processing message: {ex.Message}");
+                Console.WriteLine($"❌ Error processing message: {ex.Message}");
 
                 // Reject and requeue the message on failure
                 await _channel.BasicNackAsync(ea.DeliveryTag, false, true);
-                Console.WriteLine($"Message rejected and requeued: {message}");
+                Console.WriteLine($"⏸️ Message rejected and requeued: {message}");
+                Console.WriteLine("------------------------------------------------------------");
             }
         };
 

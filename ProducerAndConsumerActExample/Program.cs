@@ -26,3 +26,15 @@ var kafka = new KafkaPublisherAndConsumerWithAck(kafkaConnectionString, "kafka-t
 await redisPublisher.PublishMessageWithAck("Hello, Redis Stream with Ack!");
 await rabbitMqPublisher.PublishMessageWithAck("Hello, RabbitMQ with Ack!");
 await kafka.PublishMessageWithAck("Hello, Kafka with Ack!");
+
+
+await redisPublisher.ConsumeMessageWithAck("redis-consumer-group", "redis-consumer",
+    message => { Console.WriteLine($"Redis Stream Consumed Message: {message}"); });
+
+
+await rabbitMqPublisher.ConsumeMessageWithAck(message =>
+{
+    Console.WriteLine($"RabbitMQ Consumed Message: {message}");
+});
+
+kafka.ConsumeMessageWithAck(message => { Console.WriteLine($"Kafka Consumed Message: {message}"); });

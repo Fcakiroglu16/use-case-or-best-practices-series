@@ -13,6 +13,7 @@ public class KafkaPublisherAndConsumerWithAck(string bootstrapServers, string to
     /// </summary>
     public async Task PublishMessageWithAck(string message)
     {
+        Console.WriteLine("------------------------------------------------------------");
         var config = new ProducerConfig
         {
             BootstrapServers = bootstrapServers,
@@ -38,16 +39,17 @@ public class KafkaPublisherAndConsumerWithAck(string bootstrapServers, string to
                 Timestamp = Timestamp.Default
             });
 
-            Console.WriteLine($"Message published to topic '{topicName}'");
+            Console.WriteLine($"✅ Message published to topic '{topicName}'");
             Console.WriteLine($"   Partition: {deliveryResult.Partition.Value}");
             Console.WriteLine($"   Offset: {deliveryResult.Offset.Value}");
             Console.WriteLine($"   Content: {message}");
-            Console.WriteLine($"Message confirmed with status: {deliveryResult.Status}");
+            Console.WriteLine($"✅ Message confirmed with status: {deliveryResult.Status}");
             Console.WriteLine("------------------------------------------------------------");
         }
         catch (ProduceException<string, string> ex)
         {
-            Console.WriteLine($"Delivery failed: {ex.Error.Reason}");
+            Console.WriteLine($"❌ Failed to publish message: {ex.Error.Reason}");
+            Console.WriteLine("------------------------------------------------------------");
             throw;
         }
     }
@@ -83,27 +85,32 @@ public class KafkaPublisherAndConsumerWithAck(string bootstrapServers, string to
                     if (consumeResult == null)
                         continue;
 
+                    Console.WriteLine("------------------------------------------------------------");
                     var message = consumeResult.Message.Value;
 
                     try
                     {
-                        Console.WriteLine(
-                            $"Message received from partition {consumeResult.Partition.Value}, offset {consumeResult.Offset.Value}");
-                        Console.WriteLine($"Key: {consumeResult.Message.Key}, Value: {message}");
+                        Console.WriteLine($"📨 Message received from topic '{topicName}'");
+                        Console.WriteLine($"   Partition: {consumeResult.Partition.Value}");
+                        Console.WriteLine($"   Offset: {consumeResult.Offset.Value}");
+                        Console.WriteLine($"   Key: {consumeResult.Message.Key}");
+                        Console.WriteLine($"   Content: {message}");
 
                         // Mesajı işle
                         messageHandler(message);
 
                         // Manuel commit (acknowledgment)
                         consumer.Commit(consumeResult);
-                        Console.WriteLine($"Message committed: {message}");
+                        Console.WriteLine($"✅ Message committed: {message}");
+                        Console.WriteLine("------------------------------------------------------------");
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Error processing message: {ex.Message}");
+                        Console.WriteLine($"❌ Error processing message: {ex.Message}");
 
                         // Hata durumunda commit yapma, mesaj tekrar işlenecek
-                        Console.WriteLine($"Message not committed, will be reprocessed: {message}");
+                        Console.WriteLine($"⏸️ Message not committed, will be reprocessed: {message}");
+                        Console.WriteLine("------------------------------------------------------------");
                     }
                 }
                 catch (ConsumeException ex)
