@@ -2,25 +2,29 @@
 
 #region
 
+using ProducerAndConsumerActExample.Kafka;
 using ProducerAndConsumerActExample.RabbitMQ;
+using ProducerAndConsumerActExample.Redis;
 
 #endregion
 
 Console.WriteLine("Hello, World!");
 
-var connectionString = "amqps://ffqycmjd:cYOzydQzAx6gSvtbPdF4zU5T-2r4c-UR@gorilla.lmq.cloudamqp.com/ffqycmjd";
+var redisConnectionString = "localhost:6379";
 
-var queueName = "producer_consumer_ack_queue";
+var rabbitConnectionString = "amqp://guest:guest@localhost:5672";
 
-var publisherAndConsumer = new RabbitMqPublisherAndConsumerWithAck(connectionString, queueName);
+var kafkaConnectionString = "localhost:9092";
 
-// Publish messages
-for (var i = 0; i < 10; i++)
-{
-    var message = $"Message {i + 1}";
-    await publisherAndConsumer.PublishMessageWithAck(message);
-    Console.WriteLine($"Published: {message}");
-}
 
-// Start consuming messages
-await publisherAndConsumer.ConsumeMessageWithAck(message => { Console.WriteLine($"Consumed: {message}"); });
+var redisPublisher = new RedisStreamPublisherAndConsumerWithAck(redisConnectionString, "redis-stream");
+
+var rabbitMqPublisher = new RabbitMqPublisherAndConsumerWithAck(rabbitConnectionString, "rabbitmq-queue");
+
+var kafka = new KafkaPublisherAndConsumerWithAck(kafkaConnectionString, "kafka-topic");
+
+
+await redisPublisher.PublishMessageWithAck("Hello, Redis Stream with Ack!");
+
+await rabbitMqPublisher.PublishMessageWithAck("Hello, RabbitMQ with Ack!");
+await kafka.PublishMessageWithAck("Hello, Kafka with Ack!");
