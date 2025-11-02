@@ -1,7 +1,6 @@
-#region
+﻿#region
 
 using StackExchange.Redis;
-using System.Text.Json;
 
 #endregion
 
@@ -10,8 +9,8 @@ namespace ProducerAndConsumerActExample.Redis;
 public class RedisStreamPublisherAndConsumerWithAck
 {
     private readonly IDatabase _database;
-    private readonly string _streamName;
     private readonly IConnectionMultiplexer _redis;
+    private readonly string _streamName;
 
     public RedisStreamPublisherAndConsumerWithAck(string connectionString, string streamName)
     {
@@ -21,9 +20,9 @@ public class RedisStreamPublisherAndConsumerWithAck
     }
 
     /// <summary>
-    ///     Publishes a message to Redis Stream with acknowledgment
+    ///     Publishes a message to Redis Stream with acknowledgment verification
     /// </summary>
-    public async Task PublishMessageWithAck(string message)
+    public async Task<bool> PublishMessageWithAck(string message)
     {
         try
         {
@@ -38,14 +37,54 @@ public class RedisStreamPublisherAndConsumerWithAck
                 }
             );
 
-            Console.WriteLine($"? Message published to stream '{_streamName}'");
+            // messageId kontrolü - RedisValue.Null değilse başarılı
+            if (messageId.IsNull)
+            {
+                Console.WriteLine("❌ Message was not added to stream");
+                return false;
+            }
+
+            Console.WriteLine($"✅ Message published to stream '{_streamName}'");
             Console.WriteLine($"   Message ID: {messageId}");
             Console.WriteLine($"   Content: {message}");
+
+            // EKSTRA: Mesajın gerçekten yazıldığını doğrula
+            var verificationResult = await VerifyMessagePublished(messageId);
+
+            if (verificationResult)
+                Console.WriteLine($"✅ Message verified in stream: {messageId}");
+            else
+                Console.WriteLine($"⚠️ Message verification failed: {messageId}");
+
+            return verificationResult;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"? Failed to publish message: {ex.Message}");
+            Console.WriteLine($"❌ Failed to publish message: {ex.Message}");
             throw;
+        }
+    }
+
+    /// <summary>
+    ///     Mesajın stream'de olduğunu doğrula
+    /// </summary>
+    private async Task<bool> VerifyMessagePublished(RedisValue messageId)
+    {
+        try
+        {
+            // Mesajın stream'de olup olmadığını kontrol et
+            var entries = await _database.StreamRangeAsync(
+                _streamName,
+                messageId,
+                messageId,
+                1
+            );
+
+            return entries.Length > 0;
+        }
+        catch
+        {
+            return false;
         }
     }
 
@@ -60,7 +99,7 @@ public class RedisStreamPublisherAndConsumerWithAck
     {
         try
         {
-            // Consumer group olu?tur (zaten varsa hata vermez)
+            // Consumer group oluştur (zaten varsa hata vermez)
             try
             {
                 await _database.StreamCreateConsumerGroupAsync(
@@ -68,60 +107,54 @@ public class RedisStreamPublisherAndConsumerWithAck
                     consumerGroup,
                     StreamPosition.NewMessages
                 );
-                Console.WriteLine($"? Consumer group '{consumerGroup}' created");
+                Console.WriteLine($"✅ Consumer group '{consumerGroup}' created");
             }
             catch (RedisServerException ex) when (ex.Message.Contains("BUSYGROUP"))
             {
-                Console.WriteLine($"?? Consumer group '{consumerGroup}' already exists");
+                Console.WriteLine($"ℹ️ Consumer group '{consumerGroup}' already exists");
             }
 
-            Console.WriteLine($"?? Consumer '{consumerName}' started listening on stream '{_streamName}'");
+            Console.WriteLine($"📥 Consumer '{consumerName}' started listening on stream '{_streamName}'");
             Console.WriteLine($"   Group: {consumerGroup}");
 
             while (!cancellationToken.IsCancellationRequested)
-            {
                 try
                 {
-                    // Pending mesajlar? kontrol et (daha �nce al?nm?? ama ACK edilmemi?)
+                    // Pending mesajları kontrol et (daha önce alınmış ama ACK edilmemiş)
                     var pendingMessages = await _database.StreamReadGroupAsync(
                         _streamName,
                         consumerGroup,
                         consumerName,
-                        "0", // Pending mesajlar? oku
-                        count: 10
+                        "0", // Pending mesajları oku
+                        10
                     );
 
                     if (pendingMessages.Length > 0)
                     {
-                        Console.WriteLine($"?? Found {pendingMessages.Length} pending (unacknowledged) messages");
+                        Console.WriteLine($"⚠️ Found {pendingMessages.Length} pending (unacknowledged) messages");
                         await ProcessMessages(pendingMessages, consumerGroup, messageHandler);
                     }
 
-                    // Yeni mesajlar? oku
+                    // Yeni mesajları oku
                     var newMessages = await _database.StreamReadGroupAsync(
                         _streamName,
                         consumerGroup,
                         consumerName,
                         ">", // Sadece yeni mesajlar
-                        count: 10
+                        10
                     );
 
                     if (newMessages.Length > 0)
-                    {
                         await ProcessMessages(newMessages, consumerGroup, messageHandler);
-                    }
                     else
-                    {
-                        // Yeni mesaj yoksa k?sa bir s�re bekle
+                        // Yeni mesaj yoksa kısa bir süre bekle
                         await Task.Delay(100, cancellationToken);
-                    }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"? Error reading from stream: {ex.Message}");
+                    Console.WriteLine($"❌ Error reading from stream: {ex.Message}");
                     await Task.Delay(1000, cancellationToken);
                 }
-            }
         }
         catch (OperationCanceledException)
         {
@@ -134,7 +167,7 @@ public class RedisStreamPublisherAndConsumerWithAck
     }
 
     /// <summary>
-    ///     Mesajlar? i?le ve acknowledge et
+    ///     Mesajları işle ve acknowledge et
     /// </summary>
     private async Task ProcessMessages(
         StreamEntry[] messages,
@@ -149,57 +182,52 @@ public class RedisStreamPublisherAndConsumerWithAck
 
             try
             {
-                Console.WriteLine($"?? Message received:");
+                Console.WriteLine("📨 Message received:");
                 Console.WriteLine($"   ID: {messageId}");
                 Console.WriteLine($"   Content: {messageContent}");
 
-                // Mesaj? i?le
+                // Mesajı işle
                 messageHandler(messageContent);
 
-                // Acknowledge (ACK) - Mesaj ba?ar?yla i?lendi
+                // Acknowledge (ACK) - Mesaj başarıyla işlendi
                 var ackedCount = await _database.StreamAcknowledgeAsync(
                     _streamName,
                     consumerGroup,
                     messageId
                 );
 
-                if (ackedCount > 0)
-                {
-                    Console.WriteLine($"? Message acknowledged: {messageContent}");
-                }
+                if (ackedCount > 0) Console.WriteLine($"✅ Message acknowledged: {messageContent}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"? Error processing message: {ex.Message}");
-                Console.WriteLine($"?? Message NOT acknowledged (ID: {messageId}), will be reprocessed");
+                Console.WriteLine($"❌ Error processing message: {ex.Message}");
+                Console.WriteLine($"⏸️ Message NOT acknowledged (ID: {messageId}), will be reprocessed");
 
-                // ACK yap?lmad??? i�in mesaj pending listesinde kal?r
-                // Bir sonraki okumada tekrar i?lenecek
+                // ACK yapılmadığı için mesaj pending listesinde kalır
+                // Bir sonraki okumada tekrar işlenecek
             }
         }
     }
 
     /// <summary>
-    ///     Pending (ACK edilmemi?) mesajlar? kontrol eder
+    ///     Pending (ACK edilmemiş) mesajları kontrol eder
     /// </summary>
     public async Task<StreamPendingInfo> GetPendingInfo(string consumerGroup)
     {
         var pendingInfo = await _database.StreamPendingAsync(_streamName, consumerGroup);
-        
-        Console.WriteLine($"?? Pending Messages Info:");
+
+        Console.WriteLine("📊 Pending Messages Info:");
         Console.WriteLine($"   Total Pending: {pendingInfo.PendingMessageCount}");
         Console.WriteLine($"   Consumer Count: {pendingInfo.Consumers.Length}");
 
         foreach (var consumer in pendingInfo.Consumers)
-        {
             Console.WriteLine($"   - {consumer.Name}: {consumer.PendingMessageCount} pending");
-        }
 
         return pendingInfo;
     }
 
     /// <summary>
-    ///     Belirli bir mesaj? yeniden talep et (claim) - ba?ka bir consumer'a ata
+    ///     Belirli bir mesajı yeniden talep et (claim) - başka bir consumer'a ata
     /// </summary>
     public async Task ClaimPendingMessage(string consumerGroup, string consumerName, RedisValue messageId)
     {
@@ -209,26 +237,26 @@ public class RedisStreamPublisherAndConsumerWithAck
                 _streamName,
                 consumerGroup,
                 consumerName,
-                minIdleTimeInMs: 5000, // 5 saniyeden uzun s�redir i?lenmemi? mesajlar
-                messageIds: new[] { messageId }
+                5000, // 5 saniyeden uzun süredir işlenmemiş mesajlar
+                new[] { messageId }
             );
 
-            Console.WriteLine($"?? Claimed {claimedMessages.Length} messages for consumer '{consumerName}'");
+            Console.WriteLine($"🔄 Claimed {claimedMessages.Length} messages for consumer '{consumerName}'");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"? Error claiming message: {ex.Message}");
+            Console.WriteLine($"❌ Error claiming message: {ex.Message}");
         }
     }
 
     /// <summary>
-    ///     Stream bilgilerini g�ster
+    ///     Stream bilgilerini göster
     /// </summary>
     public async Task<StreamInfo> GetStreamInfo()
     {
         var streamInfo = await _database.StreamInfoAsync(_streamName);
-        
-        Console.WriteLine($"?? Stream Info:");
+
+        Console.WriteLine("📊 Stream Info:");
         Console.WriteLine($"   Name: {_streamName}");
         Console.WriteLine($"   Length: {streamInfo.Length}");
         Console.WriteLine($"   First Entry ID: {streamInfo.FirstEntry.Id}");
