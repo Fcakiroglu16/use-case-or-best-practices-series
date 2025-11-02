@@ -44,7 +44,7 @@ public class RedisStreamPublisherAndConsumerWithAck
                 return false;
             }
 
-            Console.WriteLine($"✅ Message published to stream '{_streamName}'");
+            Console.WriteLine($"Message published to stream '{_streamName}'");
             Console.WriteLine($"   Message ID: {messageId}");
             Console.WriteLine($"   Content: {message}");
 
@@ -52,9 +52,9 @@ public class RedisStreamPublisherAndConsumerWithAck
             var verificationResult = await VerifyMessagePublished(messageId);
 
             if (verificationResult)
-                Console.WriteLine($"✅ Message verified in stream: {messageId}");
+                Console.WriteLine($"Message verified in stream: {messageId}");
             else
-                Console.WriteLine($"⚠️ Message verification failed: {messageId}");
+                Console.WriteLine($"Message verification failed: {messageId}");
 
             return verificationResult;
         }

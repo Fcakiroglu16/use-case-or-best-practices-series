@@ -38,9 +38,12 @@ public class KafkaPublisherAndConsumerWithAck(string bootstrapServers, string to
                 Timestamp = Timestamp.Default
             });
 
-            Console.WriteLine($"Message delivered to {deliveryResult.TopicPartitionOffset}");
-            Console.WriteLine($"Partition: {deliveryResult.Partition.Value}, Offset: {deliveryResult.Offset.Value}");
-            Console.WriteLine($"Status: {deliveryResult.Status}");
+            Console.WriteLine($"Message published to topic '{topicName}'");
+            Console.WriteLine($"   Partition: {deliveryResult.Partition.Value}");
+            Console.WriteLine($"   Offset: {deliveryResult.Offset.Value}");
+            Console.WriteLine($"   Content: {message}");
+            Console.WriteLine($"Message confirmed with status: {deliveryResult.Status}");
+            Console.WriteLine("------------------------------------------------------------");
         }
         catch (ProduceException<string, string> ex)
         {

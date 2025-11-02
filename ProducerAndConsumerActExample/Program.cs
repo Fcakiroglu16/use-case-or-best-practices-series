@@ -8,7 +8,6 @@ using ProducerAndConsumerActExample.Redis;
 
 #endregion
 
-Console.WriteLine("Hello, World!");
 
 var redisConnectionString = "localhost:6379";
 
@@ -25,6 +24,5 @@ var kafka = new KafkaPublisherAndConsumerWithAck(kafkaConnectionString, "kafka-t
 
 
 await redisPublisher.PublishMessageWithAck("Hello, Redis Stream with Ack!");
-
 await rabbitMqPublisher.PublishMessageWithAck("Hello, RabbitMQ with Ack!");
 await kafka.PublishMessageWithAck("Hello, Kafka with Ack!");

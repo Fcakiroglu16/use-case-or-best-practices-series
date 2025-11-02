@@ -56,20 +56,36 @@ public class RabbitMqPublisherAndConsumerWithAck
     /// </summary>
     public async Task PublishMessageWithAck(string message)
     {
-        var body = Encoding.UTF8.GetBytes(message);
-
-        var properties = new BasicProperties
+        Console.WriteLine("------------------------------------------------------------");
+        try
         {
-            Persistent = true // Make message persistent
-        };
+            var body = Encoding.UTF8.GetBytes(message);
 
-        await _channel.BasicPublishAsync(
-            string.Empty,
-            _queueName,
-            false,
-            properties,
-            body
-        );
+            var properties = new BasicProperties
+            {
+                Persistent = true // Make message persistent
+            };
+
+            await _channel.BasicPublishAsync(
+                string.Empty,
+                _queueName,
+                false,
+                properties,
+                body
+            );
+
+
+            Console.WriteLine($"Message published to queue '{_queueName}'");
+            Console.WriteLine($"   Content: {message}");
+            Console.WriteLine("Message confirmed by broker");
+            Console.WriteLine("------------------------------------------------------------");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Failed to publish message: {ex.Message}");
+            Console.WriteLine("------------------------------------------------------------");
+            throw;
+        }
     }
 
     /// <summary>
