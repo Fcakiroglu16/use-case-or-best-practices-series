@@ -1,5 +1,7 @@
+using HybridSearch.API.Events;
 using HybridSearch.API.Models;
 using HybridSearch.API.Services.Interfaces;
+using MassTransit;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HybridSearch.API.Endpoints;
@@ -31,6 +33,7 @@ public static class ArticlesEndpoints
     private static async Task<IResult> CreateArticle(
         [FromBody] CreateArticleRequest request,
         IElasticsearchService elasticsearchService,
+        IPublishEndpoint publishEndpoint,
         ILogger<Program> logger,
         CancellationToken cancellationToken)
     {
@@ -53,6 +56,18 @@ public static class ArticlesEndpoints
         }
 
         logger.LogInformation("Article {ArticleId} created successfully", article.Id);
+
+        var articleCreatedEvent = new ArticleCreatedEvent
+        {
+            ArticleId = article.Id,
+            Title = article.Title,
+            Content = article.Content,
+            CreatedAt = article.CreatedAt
+        };
+
+        await publishEndpoint.Publish(articleCreatedEvent, cancellationToken);
+        
+        logger.LogInformation("ArticleCreated event published for article {ArticleId}", article.Id);
 
         return Results.CreatedAtRoute("GetArticle", new { id = article.Id }, article);
     }

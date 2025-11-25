@@ -5,6 +5,7 @@ using HybridSearch.API.Endpoints;
 using HybridSearch.API.Extensions;
 using HybridSearch.API.Services.Implementations;
 using HybridSearch.API.Services.Interfaces;
+using MassTransit;
 using Microsoft.Extensions.Options;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -34,6 +35,21 @@ builder.Services.AddSingleton(sp =>
 
 // Register Elasticsearch service
 builder.Services.AddSingleton<IElasticsearchService, ElasticsearchService>();
+
+// Configure MassTransit with RabbitMQ
+builder.Services.AddMassTransit(x =>
+{
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        cfg.Host(builder.Configuration["RabbitMQ:Host"] ?? "localhost", "/", h =>
+        {
+            h.Username(builder.Configuration["RabbitMQ:Username"] ?? "guest");
+            h.Password(builder.Configuration["RabbitMQ:Password"] ?? "guest");
+        });
+
+        cfg.ConfigureEndpoints(context);
+    });
+});
 
 WebApplication app = builder.Build();
 
