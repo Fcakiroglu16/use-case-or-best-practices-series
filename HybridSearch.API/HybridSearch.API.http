@@ -1,4 +1,4 @@
-@HybridSearch.API_HostAddress = http://localhost:8080
+@HybridSearch.API_HostAddress = https://localhost:7055
 
 ### Create Article
 POST {{HybridSearch.API_HostAddress}}/api/articles

@@ -34,7 +34,7 @@ public class ElasticsearchService : IElasticsearchService
     {
         try
         {
-            var response = await _client.IndexAsync(article, _defaultIndex, cancellationToken);
+            var response = await _client.IndexAsync(article, idx => idx.Index(_defaultIndex).Id(article.Id), cancellationToken);
 
             if (response.IsValidResponse)
             {
