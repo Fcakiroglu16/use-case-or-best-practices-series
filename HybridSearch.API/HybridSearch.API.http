@@ -1,6 +1,77 @@
-@HybridSearch.API_HostAddress = http://localhost:5050
+@HybridSearch.API_HostAddress = http://localhost:8080
 
-GET {{HybridSearch.API_HostAddress}}/weatherforecast/
+### Create Article
+POST {{HybridSearch.API_HostAddress}}/api/articles
+Content-Type: application/json
+
+{
+  "title": "Introduction to Elasticsearch",
+  "content": "Elasticsearch is a distributed, RESTful search and analytics engine capable of addressing a growing number of use cases. As the heart of the Elastic Stack, it centrally stores your data for lightning fast search, fine?tuned relevancy, and powerful analytics that scale with ease."
+}
+
+###
+
+### Create Article - Another Example
+POST {{HybridSearch.API_HostAddress}}/api/articles
+Content-Type: application/json
+
+{
+  "title": "Getting Started with .NET 10",
+  "content": ".NET 10 is the latest version of the .NET platform, bringing new features, performance improvements, and enhanced developer productivity. This article covers the key features and how to migrate your applications to .NET 10."
+}
+
+###
+
+### Create Article - Validation Error (Title too short)
+POST {{HybridSearch.API_HostAddress}}/api/articles
+Content-Type: application/json
+
+{
+  "title": "Test",
+  "content": "This should fail because the content is too short for validation rules."
+}
+
+###
+
+### Get Article by ID
+# Replace {id} with actual article ID from create response
+GET {{HybridSearch.API_HostAddress}}/api/articles/{id}
+Accept: application/json
+
+###
+
+### Get Article by ID - Example
+GET {{HybridSearch.API_HostAddress}}/api/articles/3fa85f64-5717-4562-b3fc-2c963f66afa6
+Accept: application/json
+
+###
+
+### Search Articles - Query: Elasticsearch
+GET {{HybridSearch.API_HostAddress}}/api/articles/search?q=elasticsearch&maxResults=20
+Accept: application/json
+
+###
+
+### Search Articles - Query: .NET
+GET {{HybridSearch.API_HostAddress}}/api/articles/search?q=.NET&maxResults=10
+Accept: application/json
+
+###
+
+### Search Articles - Query: performance
+GET {{HybridSearch.API_HostAddress}}/api/articles/search?q=performance
+Accept: application/json
+
+###
+
+### Search Articles - Empty Query (Bad Request)
+GET {{HybridSearch.API_HostAddress}}/api/articles/search?q=
+Accept: application/json
+
+###
+
+### Search Articles - Missing Query Parameter (Bad Request)
+GET {{HybridSearch.API_HostAddress}}/api/articles/search
 Accept: application/json
 
 ###
