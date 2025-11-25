@@ -34,37 +34,27 @@ public static class ArticlesEndpoints
         ILogger<Program> logger,
         CancellationToken cancellationToken)
     {
-        try
+        var article = new Article
         {
-            var article = new Article
-            {
-                Id = Guid.NewGuid(),
-                Title = request.Title,
-                Content = request.Content,
-                CreatedAt = DateTime.UtcNow
-            };
+            Id = Guid.NewGuid(),
+            Title = request.Title,
+            Content = request.Content,
+            CreatedAt = DateTime.UtcNow
+        };
 
-            var indexed = await elasticsearchService.IndexArticleAsync(article, cancellationToken);
+        var indexed = await elasticsearchService.IndexArticleAsync(article, cancellationToken);
 
-            if (!indexed)
-            {
-                logger.LogError("Failed to index article {ArticleId}", article.Id);
-                return Results.Problem(
-                    "Failed to index article in Elasticsearch",
-                    statusCode: StatusCodes.Status500InternalServerError);
-            }
-
-            logger.LogInformation("Article {ArticleId} created successfully", article.Id);
-
-            return Results.CreatedAtRoute("GetArticle", new { id = article.Id }, article);
-        }
-        catch (Exception ex)
+        if (!indexed)
         {
-            logger.LogError(ex, "Error creating article");
+            logger.LogError("Failed to index article {ArticleId}", article.Id);
             return Results.Problem(
-                "An error occurred while creating the article",
+                "Failed to index article in Elasticsearch",
                 statusCode: StatusCodes.Status500InternalServerError);
         }
+
+        logger.LogInformation("Article {ArticleId} created successfully", article.Id);
+
+        return Results.CreatedAtRoute("GetArticle", new { id = article.Id }, article);
     }
 
     private static async Task<IResult> GetArticle(
