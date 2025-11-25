@@ -32,75 +32,51 @@ public class ElasticsearchService : IElasticsearchService
 
     public async Task<bool> IndexArticleAsync(Article article, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var response = await _client.IndexAsync(article, idx => idx.Index(_defaultIndex).Id(article.Id), cancellationToken);
+        var response = await _client.IndexAsync(article, idx => idx.Index(_defaultIndex).Id(article.Id), cancellationToken);
 
-            if (response.IsValidResponse)
-            {
-                _logger.LogInformation("Article {ArticleId} indexed successfully", article.Id);
-                return true;
-            }
-
-            _logger.LogError("Failed to index article {ArticleId}: {Error}", article.Id, response.DebugInformation);
-            return false;
-        }
-        catch (Exception ex)
+        if (response.IsValidResponse)
         {
-            _logger.LogError(ex, "Error indexing article {ArticleId}", article.Id);
-            return false;
+            _logger.LogInformation("Article {ArticleId} indexed successfully", article.Id);
+            return true;
         }
+
+        _logger.LogError("Failed to index article {ArticleId}: {Error}", article.Id, response.DebugInformation);
+        return false;
     }
 
     public async Task<Article?> GetArticleByIdAsync(Guid articleId, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var response = await _client.GetAsync<Article>(articleId.ToString(), idx => idx.Index(_defaultIndex), cancellationToken);
+        var response = await _client.GetAsync<Article>(articleId.ToString(), idx => idx.Index(_defaultIndex), cancellationToken);
 
-            if (response.IsValidResponse && response.Found)
-            {
-                return response.Source;
-            }
-
-            return null;
-        }
-        catch (Exception ex)
+        if (response.IsValidResponse && response.Found)
         {
-            _logger.LogError(ex, "Error getting article {ArticleId}", articleId);
-            return null;
+            return response.Source;
         }
+
+        return null;
     }
 
     public async Task<List<Article>> SearchArticlesAsync(string query, int maxResults = 20, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var response = await _client.SearchAsync<Article>(s => s
-                .Indices(_defaultIndex)
-                .Size(maxResults)
-                .Query(q => q
-                    .MultiMatch(m => m
-                        .Fields(new[] { "title^2", "content" })
-                        .Query(query)
-                        .Fuzziness(new Fuzziness("AUTO"))
-                    )
-                ),
-                cancellationToken
-            );
+        var response = await _client.SearchAsync<Article>(s => s
+            .Indices(_defaultIndex)
+            .Size(maxResults)
+            .Query(q => q
+                .MultiMatch(m => m
+                    .Fields(new[] { "title^2", "content" })
+                    .Query(query)
+                    .Fuzziness(new Fuzziness("AUTO"))
+                )
+            ),
+            cancellationToken
+        );
 
-            if (response.IsValidResponse)
-            {
-                return response.Documents.ToList();
-            }
-
-            _logger.LogError("Search failed: {Error}", response.DebugInformation);
-            return new List<Article>();
-        }
-        catch (Exception ex)
+        if (response.IsValidResponse)
         {
-            _logger.LogError(ex, "Error searching articles with query: {Query}", query);
-            return new List<Article>();
+            return response.Documents.ToList();
         }
+
+        _logger.LogError("Search failed: {Error}", response.DebugInformation);
+        return new List<Article>();
     }
 }

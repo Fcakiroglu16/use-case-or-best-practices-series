@@ -58,20 +58,3 @@ Accept: application/json
 
 ###
 
-### Search Articles - Query: performance
-GET {{HybridSearch.API_HostAddress}}/api/articles/search?q=performance
-Accept: application/json
-
-###
-
-### Search Articles - Empty Query (Bad Request)
-GET {{HybridSearch.API_HostAddress}}/api/articles/search?q=
-Accept: application/json
-
-###
-
-### Search Articles - Missing Query Parameter (Bad Request)
-GET {{HybridSearch.API_HostAddress}}/api/articles/search
-Accept: application/json
-
-###
