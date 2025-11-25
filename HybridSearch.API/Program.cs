@@ -1,4 +1,5 @@
 using HybridSearch.API.Configuration;
+using HybridSearch.API.Endpoints;
 using HybridSearch.API.Services.Implementations;
 using HybridSearch.API.Services.Interfaces;
 
@@ -7,7 +8,6 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
-builder.Services.AddControllers();
 
 // Configure Elasticsearch settings
 builder.Services.Configure<ElasticsearchSettings>(
@@ -26,7 +26,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.MapControllers();
+app.MapArticlesEndpoints();
 
 app.Run();
 
