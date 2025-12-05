@@ -22,26 +22,10 @@ Content-Type: application/json
 
 ###
 
-### Create Article - Validation Error (Title too short)
-POST {{HybridSearch.API_HostAddress}}/api/articles
-Content-Type: application/json
-
-{
-  "title": "Test",
-  "content": "This should fail because the content is too short for validation rules."
-}
-
-###
 
 ### Get Article by ID
 # Replace {id} with actual article ID from create response
-GET {{HybridSearch.API_HostAddress}}/api/articles/{id}
-Accept: application/json
-
-###
-
-### Get Article by ID - Example
-GET {{HybridSearch.API_HostAddress}}/api/articles/3fa85f64-5717-4562-b3fc-2c963f66afa6
+GET {{HybridSearch.API_HostAddress}}/api/articles/0dda9e47-a1b6-4457-943e-f6762ce17790
 Accept: application/json
 
 ###
